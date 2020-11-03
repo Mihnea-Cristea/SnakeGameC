@@ -1,8 +1,9 @@
 #include <vector>
-#include <stdlib.h>
 #include <iomanip>
 #include <stdlib.h>
+
 using namespace std;
+
 const int UP 72;
 const int DOWN 80;
 const int LEFT 75;
