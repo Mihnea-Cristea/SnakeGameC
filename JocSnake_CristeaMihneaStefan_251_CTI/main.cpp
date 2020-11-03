@@ -1,11 +1,12 @@
 #include <vector>
 #include <stdlib.h>
 #include <iomanip>
+#include <cstdlib>
 using namespace std;
-const int UP 72
-const int DOWN 80
-const int LEFT 75
-const int RIGHT 77
+const int UP 72;
+const int DOWN 80;
+const int LEFT 75;
+const int RIGHT 77;
 class punct
 {
     int x,y;
