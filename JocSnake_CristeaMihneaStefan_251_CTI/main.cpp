@@ -1,7 +1,7 @@
 #include <vector>
 #include <stdlib.h>
 #include <iomanip>
-#include <cstdlib>
+#include <stdlib.h>
 using namespace std;
 const int UP 72;
 const int DOWN 80;
