@@ -1,11 +1,12 @@
 #include <vector>
 #include <stdlib.h>
-
-const int up 72
-const int down 80
-const int left 75
-const int right 77
-class Punct
+#include <iomanip>
+using namespace std;
+const int UP 72
+const int DOWN 80
+const int LEFT 75
+const int RIGHT 77
+class punct
 {
     int x,y;
 };
@@ -29,7 +30,7 @@ private:
 
     bool viu = true, mort = false;
 
-    int minim = 0, rând, coloana, scor_curent = 0, scor_best = 0, JocuriJucate = 0;
+    int minim = 0, row, coloana, scor_curent = 0, scor_best = 0, JocuriJucate = 0;
 
     int PanalaHiscore = scor[2];
 
