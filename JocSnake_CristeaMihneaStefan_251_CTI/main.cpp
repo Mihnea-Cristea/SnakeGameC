@@ -1,6 +1,8 @@
 #include <vector>
 #include <iomanip>
 #include <stdlib.h>
+#include <string>
+#include <windows.h>
 
 using namespace std;
 
@@ -24,6 +26,11 @@ private:
     int PanalaHiscore = scor[2];
 
 public:
+    void update_scor_curent()
+    {
+            scor_curent += 10;
+            update_PanaLaHiscore();
+    }
     void update_scor_best()
     {
 
@@ -54,25 +61,25 @@ public:
     }
 };
 
-class sarpe_interactiuni : public info_joc
+class sarpe_interactiuni
 {
-    bool viu = true;/// viata=true si atat
+    bool viu = true;   /// viata
     vector<punct> sarpe;
 public:
 
     void corp_sarpe()
     {
-        punct p(sarpe[0]); /// am un pct initial dupa care adaug pe directia curenta n elemente
-        p.x++; ///sugestiv || p.y++;
-        sarpe.push_back(p); /// adaug la p pe directie ( x sau y )
+        punct p(sarpe[0]);    /// am un pct initial dupa care adaug pe directia curenta n elemente
+        p.x++;  p.y++;        /// ( sugestiv )
+        sarpe.push_back(p);   /// adaug la p pe directie ( x sau y )
     }
 
-    void update_poz_mar() /// genereaza marul intre pozitia 2 si dimensiune totala - 2
+    void update_poz_mar()     /// genereaza marul intre pozitia 2 si dimensiune totala - 2
     {
         bool unic = false;
 
-        pozitie_mar.x = rand() % (coordonate_harta.x - 4) + 2;
-        pozitie_mar.y = rand() % (coordonate_harta.y - 4) + 2;
+        pozitie_mar.x = rand() % (lungime - 4) + 2;
+        pozitie_mar.y = rand() % (inaltime - 4) + 2;
 
 //        for (int i = 0; i < sarpe.size(); i++) va fi folosit la gasit
 //        {
@@ -84,62 +91,100 @@ public:
 
     void conditie_sarpe()  /// verifica daca sarpele a mancat vreun mar sau a murit lovindu-se in perete sau mancandu se singur
     {
-        if (Ox == 0  ||  Ox == coordonate_harta.x - 1  ||  Oy == 0  ||  Oy == coordonate_harta.y - 1)
+        if ( sarpe[0].x == 0  || sarpe[0].x == lungime - 1  || sarpe[0].y == 0  ||  sarpe[0].y == inaltime - 1)  /// sarpe[0].x / .y reprezinta coordonatele capului sarpelui, corect ?
             viu = false;
 
         for (int i = 1; i <= scor_curent / 10; i++)
         {
-            if (sarpe[i].x == Ox && sarpe[i].y == Oy)
+            if (sarpe[i].x == pctOX && sarpe[i].y == pctOY)
             {
                 viu = false;
             }
         }
-        if (pozitie_mar.x == sarpe[0].x && pozitie_mar.y == sarpe[0].y)
-        {
-            scor_curent += 10;
-            update_PanaLaHiscore();
-            update_poz_mar();
-        }
-
-
     }
 };
 
-void joc()
+class joc
 {
+    enum directie { UP, DOWN, LEFT, RIGHT };
+    directie dir;
+
+    void get_tasta()
+    {
+        if ///tasta_apasata    /// nu stiu la astea 2 ce as putea sa scriu, in mintea mea e cazul daca se apasa tasta se intra in switch (get_char_apasat), am nevoie de putin ajutor, doar sa mi spui cu ce ar trebui sa inlocuiesc
+            switch ///get_char
+            {
+            case 'a': case 'A': case KEY_LEFT:
+                if (dir != RIGHT) dir = LEFT;
+                break;
+            case 'd': case 'D': case KEY_RIGHT:
+                if (dir != LEFT) dir = RIGHT;
+                break;
+            case 'w': case 'W': case KEY_UP:
+                if (dir != DOWN) dir = UP;
+                break;
+            case 's': case 'S': case KEY_DOWN:
+                if (dir != UP) dir = DOWN;
+                break;
+            }
+    }
+
+    void get_movement_sarpe()
+    {
+        if (dir == LEFT) x--;
+        else if (dir == RIGHT) x++;
+        else if (dir == UP) y--;
+        else if (dir == DOWN) y++;
+        else return;
+    }
+
+    void generare_mar()  /// generarea marului pt prima data
+    {
+        punct pozitie_mar;
+        pozitie_mar.x = rand() % (lungime - 4) + 2;
+        pozitie_mar.y = rand() % (latime - 4) + 2;
+    }
+
+    int gasit_mar ()
+    {
+        if (pozitie_mar.x == sarpe[0].x && pozitie_mar.y == sarpe[0].y)
+           return 1;
+        return 0;
+    }
+
+
     for(int i=1; i<=nr_vieti; i++)
     {
         harta h;
-        mar& m = h.getMar();
-        init(sarpe), init(mar); /// directia in care se indreapta initial
+        mar& m = h.getMar();   /// nu stiu ce ar trebui sa insemne h.getMar();
+        corp_sarpe();  ///initializarea corpului sarpelui
+
         while (sarpe.getViata())
         {
             deseneaza_harta();
-            tasta=get_caracter();
-            switch (tasta) /// actualizeaza directia
-                sarpe.avanseaza();
+            tasta=get_tasta();
+            get_movement_sarpe()  /// actualizeaza directia
             if(sarpe.conditie_sarpe()==false)  break;
             if(gasit_mar())
             {
                 update_poz_mar();
-                sarpe_crestere();
-                actualizeaza_scor(); /// scor_curent +=10, update_scor_best;
+                sarpe_crestere();   /// nu stiu cum sa implementez asta
+                update_scor_curent();
             }
         }
     }
 }
 class harta
 {
-    /// sarpe,mar, coordonate de lungime si latime
+    /// sarpe,mar, coordonate de lungime si inaltime
 
-    punct coordonate_harta; /// int latime = 30 , inaltime = 20;
-    coordonate_harta.x = 30, coordonate_harta.y = 20;
+    int lungime = 30 , inaltime = 20;
 
-    punct pozitie_mar; /// int MarPozitieX = rand() % (latime - 4) + 2;
-    pozitie_mar.x = rand() % (coordonate_harta.x - 4) + 2;
-    pozitie_mar.y = rand() % (coordonate_harta.y - 4) + 2;                  /// int MarPozitieY = rand() % (inaltime - 4) + 2;
-    vector<punct> sarpe;
-    int Ox = latime / 2, Oy = inaltime / 2;
+
+    punct pozitie_mar;
+    pozitie_mar.x = rand() % (lungime - 4) + 2;
+    pozitie_mar.y = rand() % (latime - 4) + 2;
+    int pctOX = lungime / 2, pctOY = inaltime / 2;
     /// deseneaza_harta();
 
 };
