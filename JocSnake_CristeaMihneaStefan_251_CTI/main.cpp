@@ -21,7 +21,7 @@ class info_joc
 private:
     vector<int> scor = { 60, 40, 20 };
 
-    int minim = 0, row, coloana, scor_curent = 0, scor_best = 0, JocuriJucate = 0;
+    int minim = 0, row, coloana, scor_curent = 0, scor_best = 0, jocuri_jucate = 0;
 
     int PanalaHiscore = scor[2];
 
@@ -58,6 +58,19 @@ public:
                 return;
             }
         }
+    }
+    void generare_TabelaDeScor(int row) {
+        if (row == 1) cout << setw(22) << "Scor curent:" << setw(13) << scor_curent;
+        if (row == 2) cout << setw(26) << "Pana la high-Score: " << setw(9) << PanalaHiscore;
+        if (row == 5) cout << setw(35) << "Top scoruri                 ";
+        if (row == 6) cout << setw(35) << "===========================";
+        if (row == 7) cout << setw(17) << "Locul 1" << setw(18) << scor[0];
+        if (row == 8) cout << setw(17) << "Locul 2" << setw(18) << scor[1];
+        if (row == 9) cout << setw(17) << "Locul 3" << setw(18) << scor[2];
+        if (row == 12) cout << setw(35) << "Sesiune curenta          ";
+        if (row == 13) cout << setw(35) << "===========================";
+        if (row == 14) cout << setw(21) << "Jocuri jucate:" << setw(14) << jocuri_jucate;
+        if (row == 15) cout << setw(21) << "Cel mai bun scor:" << setw(14) << scor_best;
     }
 };
 
@@ -131,10 +144,10 @@ class joc
 
     void get_movement_sarpe()
     {
-        if (dir == LEFT) x--;
-        else if (dir == RIGHT) x++;
-        else if (dir == UP) y--;
-        else if (dir == DOWN) y++;
+        if (dir == LEFT) pctOX--;
+        else if (dir == RIGHT) pctOX++;
+        else if (dir == UP) pctOY--;
+        else if (dir == DOWN) pctOY++;
         else return;
     }
 
