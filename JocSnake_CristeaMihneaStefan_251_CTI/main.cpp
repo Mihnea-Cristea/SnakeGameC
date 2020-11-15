@@ -5,29 +5,28 @@
 #include <windows.h>
 #include <time.h>
 #include <iostream>
+#include "rlutil"
 
 using namespace std;
 
-const int UP = 72;
-const int DOWN = 80;
-const int LEFT = 75;
-const int RIGHT = 77;
+const int TASTA_UP = 72;
+const int TASTA_DOWN = 80;
+const int TASTA_LEFT = 75;
+const int TASTA_RIGHT = 77;
 
-class harta{};
 
 class punct
 {
     int x,y;
-    public : friend class sarpe_interactiuni;
+    friend class sarpe_interactiuni;
+    friend class harta;
+    friend class joc;
 };
 
 class info_joc
 {
-private:
-    vector<int> scor;
-    scor.push_back(60);
-    scor.push_back(40);
-    scor.push_back(20);
+protected:
+    vector<int> scor = { 60, 40, 20 };
 
     int minim = 0, row, coloana, scor_curent = 0, scor_best = 0, jocuri_jucate = 0;
 
@@ -67,7 +66,8 @@ public:
             }
         }
     }
-    void generare_TabelaDeScor(int row) {
+    void generare_TabelaDeScor(int row)
+    {
         if (row == 1) cout << setw(22) << "Scor curent:" << setw(13) << scor_curent;
         if (row == 2) cout << setw(26) << "Pana la high-Score: " << setw(9) << PanalaHiscore;
         if (row == 5) cout << setw(35) << "Top scoruri                 ";
@@ -82,8 +82,57 @@ public:
     }
 };
 
-class sarpe_interactiuni : public harta , public info_joc
+class harta : public info_joc
 {
+    /// sarpe,mar, coordonate de lungime si inaltime
+protected:
+
+    int lungime = 30, inaltime = 20;
+    punct pozitie_mar;
+    punct pozitie_mar.x = rand() % (lungime - 4) + 2;
+    punct pozitie_mar.y = rand() % (latime - 4) + 2;
+    int pctOX = lungime / 2, pctOY = inaltime / 2;
+public:
+
+    void deseneaza_harta(vector<punct> sarpe)
+    {
+        system("cls");
+        for (row = 0; row < inaltime; row++)
+        {
+            for (coloana = 0; coloana < lungime; coloana++)
+            {
+                if (row == 0 || row == inaltime - 1) cout << "*";
+                else if (coloana == 0 || coloana == lungime - 1) cout << "*";
+                else if (row == pctOY && coloana == pctOX) cout << "X";
+                else if (row == pozitie_mar.y && coloana == pozitie_mar.x) cout << "O";
+                else
+                {
+                    bool afiseaza_spatiu = true;
+                    for (int corp = 1; corp < (scor_curent + 10) / 10; corp++)
+                    {
+                        if (sarpe[corp].x == coloana && sarpe[corp].y == row)
+                        {
+                            cout << "X";
+                            afiseaza_spatiu = false;
+                        }
+                    }
+                    if (afiseaza_spatiu)
+                    {
+                        cout << " ";
+                    }
+                }
+            }
+            generare_TabelaDeScor(row);
+            cout << endl;
+        }
+    }
+
+};
+
+class sarpe_interactiuni : public harta
+{
+
+protected:
 
     bool viu = true;   /// viata
     vector<punct> sarpe;
@@ -102,13 +151,13 @@ public:
     {
         bool unic = false;
 
-        pozitie_mar.x = rand() % (lungime - 4) + 2;
-        pozitie_mar.y = rand() % (inaltime - 4) + 2;
+        pozitie_mar.x = rand() % (harta::lungime - 4) + 2;
+        pozitie_mar.y = rand() % (harta::inaltime - 4) + 2;
     }
 
     void conditie_sarpe()  /// verifica daca sarpele a mancat vreun mar sau a murit lovindu-se in perete sau mancandu se singur
     {
-        if ( sarpe[0].x == 0  || sarpe[0].x == lungime - 1  || sarpe[0].y == 0  ||  sarpe[0].y == inaltime - 1)  /// sarpe[0].x / .y reprezinta coordonatele capului sarpelui, corect ?
+        if ( sarpe[0].x == 0  || sarpe[0].x == harta::lungime - 1  || sarpe[0].y == 0  ||  sarpe[0].y == harta::inaltime - 1)  /// sarpe[0].x / .y reprezinta coordonatele capului sarpelui, corect ?
             viu = false;
 
         for (int i = 1; i <= scor_curent / 10; i++)
@@ -119,17 +168,19 @@ public:
             }
         }
     }
+    friend class harta;
 };
 
-class joc : public harta , public sarpe_interactiuni ,
+class joc : public sarpe_interactiuni
 {
     enum directie { UP, DOWN, LEFT, RIGHT };
     directie dir;
 
     void get_tasta()
     {
-        if get_movement_sarpe()    /// nu stiu la astea 2 ce as putea sa scriu, in mintea mea e cazul daca se apasa tasta se intra in switch (get_char_apasat), am nevoie de putin ajutor, doar sa mi spui cu ce ar trebui sa inlocuiesc
-            switch ///get_char
+        if (rlutil::_kbhit())    /// nu stiu la astea 2 ce as putea sa scriu, in mintea mea e cazul daca se apasa tasta se intra in switch (get_char_apasat), am nevoie de putin ajutor, doar sa mi spui cu ce ar trebui sa inlocuiesc
+        {
+            switch (rlutil::_getch())
             {
             case 'a': case 'A': case KEY_LEFT:
                 if (dir != RIGHT) dir = LEFT;
@@ -144,68 +195,36 @@ class joc : public harta , public sarpe_interactiuni ,
                 if (dir != UP) dir = DOWN;
                 break;
             }
+        }
     }
 
     void get_movement_sarpe()
     {
-        if (dir == LEFT) pctOX--;
-        else if (dir == RIGHT) pctOX++;
-        else if (dir == UP) pctOY--;
-        else if (dir == DOWN) pctOY++;
-        else return 0;
+        if (dir == LEFT) harta::pctOX--;
+        else if (dir == RIGHT) harta::pctOX++;
+        else if (dir == UP) harta::pctOY--;
+        else if (dir == DOWN) harta::pctOY++;
     }
 
     void generare_mar()  /// generarea marului pt prima data
     {
-        pozitie_mar.x = rand() % (lungime - 4) + 2;
-        pozitie_mar.y = rand() % (latime - 4) + 2;
+        harta::pozitie_mar.x = rand() % (harta::lungime - 4) + 2;
+        harta::pozitie_mar.y = rand() % (harta::inaltime - 4) + 2;
     }
 
     int gasit_mar ()
     {
-        if (pozitie_mar.x == sarpe[0].x && pozitie_mar.y == sarpe[0].y)
+        if (harta::pozitie_mar.x == sarpe[0].x && harta::pozitie_mar.y == sarpe[0].y)
            return 1;
         return 0;
     }
 
-
-    void deseneaza_harta()
-    {
-        system("cls");
-        for (row = 0; row < inaltime; row++)
-            {
-            for (coloana = 0; coloana < lungime; coloana++)
-            {
-                if (row == 0 || row == inaltime - 1) cout << "*";
-                else if (coloana == 0 || coloana == lungime - 1) cout << "*";
-                else if (row == pctOY && coloana == pctOX) cout << "X";
-                else if (row == pozitie_mar.y && coloana == pozitie_mar.x) cout << "O";
-                else
-                {
-                    bool afiseaza_spatiu = true;
-                    for (int corp = 1; corp < (scor_curent+10)/10; corp++)
-                    {
-                        if (sarpe[corp].x == coloana && sarpe[corp].y == row)
-                        {
-                            cout << "X";
-                            afiseaza_spatiu = false;
-                        }
-                    }
-                    if (afiseaza_spatiu)
-                    {
-                        cout << " ";
-                    }
-                }
-            }
-            generare_TabelaDeScor(row);
-            cout << endl;
-        }
-    }
+public :
     void playGame()
      {
         while (viu)
         {
-            deseneaza_harta();
+            deseneaza_harta(sarpe);
             get_tasta();
             get_movement_sarpe();
             corp_sarpe();
@@ -216,20 +235,7 @@ class joc : public harta , public sarpe_interactiuni ,
 
 };
 
-class harta
-{
-    /// sarpe,mar, coordonate de lungime si inaltime
 
-    int lungime = 30 , inaltime = 20;
-
-
-    punct pozitie_mar;
-    pozitie_mar.x = rand() % (lungime - 4) + 2;
-    pozitie_mar.y = rand() % (latime - 4) + 2;
-    int pctOX = lungime / 2, pctOY = inaltime / 2;
-    deseneaza_harta();
-
-};
 
 int main()
 {
