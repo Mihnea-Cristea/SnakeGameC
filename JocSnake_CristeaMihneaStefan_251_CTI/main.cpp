@@ -87,7 +87,7 @@ class harta : public info_joc
     /// sarpe,mar, coordonate de lungime si inaltime
 protected:
 
-    punct pozitie_mar {rand() % (lungime - 4) + 2, rand() % (latime - 4) + 2};
+    punct pozitie_mar {rand() % (lungime - 4) + 2, rand() % (inaltime - 4) + 2};
     int lungime = 30, inaltime = 20;
     int pctOX = lungime / 2, pctOY = inaltime / 2;
 
