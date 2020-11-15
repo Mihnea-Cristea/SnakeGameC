@@ -16,9 +16,8 @@ const int TASTA_RIGHT = 77;
 
 class punct
 {
-    punct pozitie_mar;
-    punct pozitie_mar{rand() % (lungime - 4) + 2, rand() % (latime - 4) + 2};
     int x,y;
+    punct (int a,int b) {x=a;y=b;}
     friend class sarpe_interactiuni;
     friend class harta;
     friend class joc;
@@ -88,8 +87,10 @@ class harta : public info_joc
     /// sarpe,mar, coordonate de lungime si inaltime
 protected:
 
+    punct pozitie_mar {rand() % (lungime - 4) + 2, rand() % (latime - 4) + 2};
     int lungime = 30, inaltime = 20;
     int pctOX = lungime / 2, pctOY = inaltime / 2;
+
 public:
 
     void deseneaza_harta(vector<punct> sarpe)
@@ -176,20 +177,20 @@ class joc : public sarpe_interactiuni
 
     void get_tasta()
     {
-        if (rlutil::_kbhit())    /// nu stiu la astea 2 ce as putea sa scriu, in mintea mea e cazul daca se apasa tasta se intra in switch (get_char_apasat), am nevoie de putin ajutor, doar sa mi spui cu ce ar trebui sa inlocuiesc
+        if (_kbhit())    /// nu stiu la astea 2 ce as putea sa scriu, in mintea mea e cazul daca se apasa tasta se intra in switch (get_char_apasat), am nevoie de putin ajutor, doar sa mi spui cu ce ar trebui sa inlocuiesc
         {
-            switch (rlutil::_getch())
+            switch (_getch())
             {
-            case 'a': case 'A': case KEY_LEFT:
+            case 'a': case 'A': case rlutil::KEY_LEFT:
                 if (dir != RIGHT) dir = LEFT;
                 break;
-            case 'd': case 'D': case KEY_RIGHT:
+            case 'd': case 'D': case rlutil::KEY_RIGHT:
                 if (dir != LEFT) dir = RIGHT;
                 break;
-            case 'w': case 'W': case KEY_UP:
+            case 'w': case 'W': case rlutil::KEY_UP:
                 if (dir != DOWN) dir = UP;
                 break;
-            case 's': case 'S': case KEY_DOWN:
+            case 's': case 'S': case rlutil::KEY_DOWN:
                 if (dir != UP) dir = DOWN;
                 break;
             }
