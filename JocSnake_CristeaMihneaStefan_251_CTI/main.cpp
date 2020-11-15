@@ -1,11 +1,10 @@
 #include <vector>
 #include <iomanip>
-#include <stdlib.h>
 #include <string>
-#include <windows.h>
-#include <time.h>
+#include <cstdlib>
+#include <ctime>
 #include <iostream>
-#include "rlutil"
+#include "rlutil.h"
 
 using namespace std;
 
@@ -17,6 +16,8 @@ const int TASTA_RIGHT = 77;
 
 class punct
 {
+    punct pozitie_mar;
+    punct pozitie_mar{rand() % (lungime - 4) + 2, rand() % (latime - 4) + 2};
     int x,y;
     friend class sarpe_interactiuni;
     friend class harta;
@@ -88,9 +89,6 @@ class harta : public info_joc
 protected:
 
     int lungime = 30, inaltime = 20;
-    punct pozitie_mar;
-    punct pozitie_mar.x = rand() % (lungime - 4) + 2;
-    punct pozitie_mar.y = rand() % (latime - 4) + 2;
     int pctOX = lungime / 2, pctOY = inaltime / 2;
 public:
 
