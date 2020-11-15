@@ -3,23 +3,31 @@
 #include <stdlib.h>
 #include <string>
 #include <windows.h>
+#include <time.h>
+#include <iostream>
 
 using namespace std;
 
-const int UP 72;
-const int DOWN 80;
-const int LEFT 75;
-const int RIGHT 77;
+const int UP = 72;
+const int DOWN = 80;
+const int LEFT = 75;
+const int RIGHT = 77;
+
+class harta{};
 
 class punct
 {
     int x,y;
+    public : friend class sarpe_interactiuni;
 };
 
 class info_joc
 {
 private:
-    vector<int> scor = { 60, 40, 20 };
+    vector<int> scor;
+    scor.push_back(60);
+    scor.push_back(40);
+    scor.push_back(20);
 
     int minim = 0, row, coloana, scor_curent = 0, scor_best = 0, jocuri_jucate = 0;
 
@@ -74,10 +82,13 @@ public:
     }
 };
 
-class sarpe_interactiuni
+class sarpe_interactiuni : public harta , public info_joc
 {
+
     bool viu = true;   /// viata
     vector<punct> sarpe;
+
+
 public:
 
     void corp_sarpe()
@@ -93,13 +104,6 @@ public:
 
         pozitie_mar.x = rand() % (lungime - 4) + 2;
         pozitie_mar.y = rand() % (inaltime - 4) + 2;
-
-//        for (int i = 0; i < sarpe.size(); i++) va fi folosit la gasit
-//        {
-//            if (pozitie_mar.x == sarpe[i].x && pozitie_mar.y == sarpe[i].y) break;
-//            else unic = true;
-//        }
-//
     }
 
     void conditie_sarpe()  /// verifica daca sarpele a mancat vreun mar sau a murit lovindu-se in perete sau mancandu se singur
@@ -117,14 +121,14 @@ public:
     }
 };
 
-class joc
+class joc : public harta , public sarpe_interactiuni ,
 {
     enum directie { UP, DOWN, LEFT, RIGHT };
     directie dir;
 
     void get_tasta()
     {
-        if ///tasta_apasata    /// nu stiu la astea 2 ce as putea sa scriu, in mintea mea e cazul daca se apasa tasta se intra in switch (get_char_apasat), am nevoie de putin ajutor, doar sa mi spui cu ce ar trebui sa inlocuiesc
+        if get_movement_sarpe()    /// nu stiu la astea 2 ce as putea sa scriu, in mintea mea e cazul daca se apasa tasta se intra in switch (get_char_apasat), am nevoie de putin ajutor, doar sa mi spui cu ce ar trebui sa inlocuiesc
             switch ///get_char
             {
             case 'a': case 'A': case KEY_LEFT:
@@ -148,12 +152,11 @@ class joc
         else if (dir == RIGHT) pctOX++;
         else if (dir == UP) pctOY--;
         else if (dir == DOWN) pctOY++;
-        else return;
+        else return 0;
     }
 
     void generare_mar()  /// generarea marului pt prima data
     {
-        punct pozitie_mar;
         pozitie_mar.x = rand() % (lungime - 4) + 2;
         pozitie_mar.y = rand() % (latime - 4) + 2;
     }
@@ -166,27 +169,53 @@ class joc
     }
 
 
-    for(int i=1; i<=nr_vieti; i++)
+    void deseneaza_harta()
     {
-        harta h;
-        mar& m = h.getMar();   /// nu stiu ce ar trebui sa insemne h.getMar();
-        corp_sarpe();  ///initializarea corpului sarpelui
-
-        while (sarpe.getViata())
-        {
-            deseneaza_harta();
-            tasta=get_tasta();
-            get_movement_sarpe()  /// actualizeaza directia
-            if(sarpe.conditie_sarpe()==false)  break;
-            if(gasit_mar())
+        system("cls");
+        for (row = 0; row < inaltime; row++)
             {
-                update_poz_mar();
-                sarpe_crestere();   /// nu stiu cum sa implementez asta
-                update_scor_curent();
+            for (coloana = 0; coloana < lungime; coloana++)
+            {
+                if (row == 0 || row == inaltime - 1) cout << "*";
+                else if (coloana == 0 || coloana == lungime - 1) cout << "*";
+                else if (row == pctOY && coloana == pctOX) cout << "X";
+                else if (row == pozitie_mar.y && coloana == pozitie_mar.x) cout << "O";
+                else
+                {
+                    bool afiseaza_spatiu = true;
+                    for (int corp = 1; corp < (scor_curent+10)/10; corp++)
+                    {
+                        if (sarpe[corp].x == coloana && sarpe[corp].y == row)
+                        {
+                            cout << "X";
+                            afiseaza_spatiu = false;
+                        }
+                    }
+                    if (afiseaza_spatiu)
+                    {
+                        cout << " ";
+                    }
+                }
             }
+            generare_TabelaDeScor(row);
+            cout << endl;
         }
     }
-}
+    void playGame()
+     {
+        while (viu)
+        {
+            deseneaza_harta();
+            get_tasta();
+            get_movement_sarpe();
+            corp_sarpe();
+            conditie_sarpe();
+            Sleep(100);
+        }
+    }
+
+};
+
 class harta
 {
     /// sarpe,mar, coordonate de lungime si inaltime
@@ -198,6 +227,16 @@ class harta
     pozitie_mar.x = rand() % (lungime - 4) + 2;
     pozitie_mar.y = rand() % (latime - 4) + 2;
     int pctOX = lungime / 2, pctOY = inaltime / 2;
-    /// deseneaza_harta();
+    deseneaza_harta();
 
 };
+
+int main()
+{
+    srand(time(NULL));
+
+    joc play;
+    play.playGame();
+
+    system("PAUSE");
+}
