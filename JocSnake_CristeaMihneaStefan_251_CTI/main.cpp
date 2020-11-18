@@ -1,6 +1,5 @@
 #include <vector>
 #include <iomanip>
-#include <string>
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
@@ -8,19 +7,28 @@
 
 using namespace std;
 
-const int TASTA_UP = 72;
-const int TASTA_DOWN = 80;
-const int TASTA_LEFT = 75;
-const int TASTA_RIGHT = 77;
-
-
-class punct
+struct punct
 {
     int x,y;
-    punct (int a,int b) {x=a;y=b;}
-    friend class sarpe_interactiuni;
-    friend class harta;
-    friend class joc;
+
+    punct(int x, int y) : x(x), y(y) {}
+    /// sau punct (int a,int b) {x=a;y=b;}
+
+    punct (int lungime, int inaltime, bool )  : x( rand() % (lungime - 4) + 2 ), y ( rand() % (inaltime - 4) + 2 ) {}
+    bool operator==(const punct &rhs) const {
+        return x == rhs.x
+                    &&
+               y == rhs.y;
+    }
+
+    friend ostream &operator<<(ostream &os, const punct &punct) {   ///operator de afisare
+        os << "x: " << punct.x << " y: " << punct.y;
+        return os;
+    }
+
+    bool operator!=(const punct &rhs) const {
+        return !(rhs == *this);
+    }
 };
 
 class info_joc
@@ -28,7 +36,49 @@ class info_joc
 protected:
     vector<int> scor = { 60, 40, 20 };
 
-    int minim = 0, row, coloana, scor_curent = 0, scor_best = 0, jocuri_jucate = 0;
+    int scor_curent = 0, scor_best = 0, jocuri_jucate = 0;
+public:
+    const vector<int> &getScor() const {
+        return scor;
+    }
+
+    void setScor(const vector<int> &scor) {
+        info_joc::scor = scor;
+    }
+
+    int getScorCurent() const {
+        return scor_curent;
+    }
+
+    void setScorCurent(int scorCurent) {
+        scor_curent = scorCurent;
+    }
+
+    int getScorBest() const {
+        return scor_best;
+    }
+
+    void setScorBest(int scorBest) {
+        scor_best = scorBest;
+    }
+
+    int getJocuriJucate() const {
+        return jocuri_jucate;
+    }
+
+    void setJocuriJucate(int jocuriJucate) {
+        jocuri_jucate = jocuriJucate;
+    }
+
+    int getPanalaHiscore() const {
+        return PanalaHiscore;
+    }
+
+    void setPanalaHiscore(int panalaHiscore) {
+        PanalaHiscore = panalaHiscore;
+    }
+
+protected:
 
     int PanalaHiscore = scor[2];
 
@@ -56,7 +106,7 @@ public:
 
     void updateTabelaDeScor()
     {
-        for (int tracker = 1; tracker <= scor.size(); tracker++)
+        for (unsigned int tracker = 0; tracker < scor.size(); tracker++)
         {
             if (scor_curent > scor[tracker])
             {
@@ -82,32 +132,72 @@ public:
     }
 };
 
-class harta : public info_joc
+class harta
 {
-    /// sarpe,mar, coordonate de lungime si inaltime
+    /// sarpe, mar, coordonate de lungime si inaltime
 protected:
 
-    punct pozitie_mar {rand() % (lungime - 4) + 2, rand() % (inaltime - 4) + 2};
     int lungime = 30, inaltime = 20;
+    punct pozitie_mar {lungime, inaltime, true};
     int pctOX = lungime / 2, pctOY = inaltime / 2;
+public:
+    void setPozitieMar(const punct &pozitieMar) {
+        pozitie_mar = pozitieMar;
+    }
+
+    void setLungime(int lungime) {
+        harta::lungime = lungime;
+    }
+
+    void setInaltime(int inaltime) {
+        harta::inaltime = inaltime;
+    }
+
+    void setPctOx(int pctOx) {
+        pctOX = pctOx;
+    }
+
+    void setPctOy(int pctOy) {
+        pctOY = pctOy;
+    }
 
 public:
+    const punct &getPozitieMar() const {
+        return pozitie_mar;
+    }
 
-    void deseneaza_harta(vector<punct> sarpe)
+    int getLungime() const {
+        return lungime;
+    }
+
+    int getInaltime() const {
+        return inaltime;
+    }
+
+    int getPctOx() const {
+        return pctOX;
+    }
+
+    int getPctOy() const {
+        return pctOY;
+    }
+
+    void deseneaza_harta(vector<punct> sarpe, info_joc info) const
     {
-        system("cls");
-        for (row = 0; row < inaltime; row++)
+        rlutil::cls();
+        for (int row = 0; row < inaltime; row++)
         {
-            for (coloana = 0; coloana < lungime; coloana++)
+            for (int coloana = 0; coloana < lungime; coloana++)
             {
-                if (row == 0 || row == inaltime - 1) cout << "*";
-                else if (coloana == 0 || coloana == lungime - 1) cout << "*";
+                if  ( ( row == 0 || row == inaltime - 1 )
+                            ||
+                    ( coloana == 0 || coloana == lungime - 1 ) ) cout << "*";
                 else if (row == pctOY && coloana == pctOX) cout << "X";
                 else if (row == pozitie_mar.y && coloana == pozitie_mar.x) cout << "O";
                 else
                 {
                     bool afiseaza_spatiu = true;
-                    for (int corp = 1; corp < (scor_curent + 10) / 10; corp++)
+                    for (int corp = 1; corp < info.getScorCurent() + 10 / 10; corp++)
                     {
                         if (sarpe[corp].x == coloana && sarpe[corp].y == row)
                         {
@@ -121,23 +211,33 @@ public:
                     }
                 }
             }
-            generare_TabelaDeScor(row);
+            info.generare_TabelaDeScor(row);
             cout << endl;
         }
     }
 
+    friend class joc;
 };
 
-class sarpe_interactiuni : public harta
+
+
+class sarpe_interactiuni
 {
 
 protected:
 
     bool viu = true;   /// viata
-    vector<punct> sarpe;
+    vector<punct> sarpe {};
 
 
 public:
+    sarpe_interactiuni(harta h);
+
+    const vector<punct> &getSarpe() const;
+
+    bool isViu() const;
+
+    const punct &getCap() const;
 
     void corp_sarpe()
     {
@@ -146,22 +246,14 @@ public:
         sarpe.push_back(p);   /// adaug la p pe directie ( x sau y )
     }
 
-    void update_poz_mar()     /// genereaza marul intre pozitia 2 si dimensiune totala - 2
+    void conditie_sarpe(const info_joc& info, harta h)  /// verifica daca sarpele a mancat vreun mar sau a murit lovindu-se in perete sau mancandu se singur && constructor de copiere ( harta h )
     {
-        bool unic = false;
-
-        pozitie_mar.x = rand() % (harta::lungime - 4) + 2;
-        pozitie_mar.y = rand() % (harta::inaltime - 4) + 2;
-    }
-
-    void conditie_sarpe()  /// verifica daca sarpele a mancat vreun mar sau a murit lovindu-se in perete sau mancandu se singur
-    {
-        if ( sarpe[0].x == 0  || sarpe[0].x == harta::lungime - 1  || sarpe[0].y == 0  ||  sarpe[0].y == harta::inaltime - 1)  /// sarpe[0].x / .y reprezinta coordonatele capului sarpelui, corect ?
+        if ( sarpe[0].x == 0  || sarpe[0].x == h.getLungime() - 1  || sarpe[0].y == 0  ||  sarpe[0].y == h.getInaltime() - 1)  /// sarpe[0].x / .y reprezinta coordonatele capului sarpelui, corect ?
             viu = false;
 
-        for (int i = 1; i <= scor_curent / 10; i++)
+        for (int i = 1; i <= info.getScorCurent() / 10; i++)
         {
-            if (sarpe[i].x == pctOX && sarpe[i].y == pctOY)
+            if (sarpe[i].x == h.getPctOx() && sarpe[i].y == h.getPctOy())
             {
                 viu = false;
             }
@@ -170,10 +262,29 @@ public:
     friend class harta;
 };
 
-class joc : public sarpe_interactiuni
+bool sarpe_interactiuni::isViu() const {
+    return viu;
+}
+
+const punct &sarpe_interactiuni::getCap() const {
+    return sarpe[0];
+}
+
+const vector<punct> &sarpe_interactiuni::getSarpe() const {
+    return sarpe;
+}
+
+sarpe_interactiuni::sarpe_interactiuni(harta h) {
+    sarpe.emplace_back( h.getLungime() , h.getInaltime() , true );
+}
+
+class joc
 {
     enum directie { UP, DOWN, LEFT, RIGHT };
-    directie dir;
+    directie dir = UP;
+    info_joc info {};
+    harta h {};
+    sarpe_interactiuni s{h};
 
     void get_tasta()
     {
@@ -199,38 +310,40 @@ class joc : public sarpe_interactiuni
 
     void get_movement_sarpe()
     {
-        if (dir == LEFT) harta::pctOX--;
-        else if (dir == RIGHT) harta::pctOX++;
-        else if (dir == UP) harta::pctOY--;
-        else if (dir == DOWN) harta::pctOY++;
+        if (dir == LEFT) h.pctOX--;
+        else if (dir == RIGHT) h.pctOX++;
+        else if (dir == UP) h.pctOY--;
+        else if (dir == DOWN) h.pctOY++;
     }
 
     void generare_mar()  /// generarea marului pt prima data
     {
-        harta::pozitie_mar.x = rand() % (harta::lungime - 4) + 2;
-        harta::pozitie_mar.y = rand() % (harta::inaltime - 4) + 2;
+        h.pozitie_mar= {h.lungime, h.inaltime, true};   ///operator =
     }
 
     int gasit_mar ()
     {
-        if (harta::pozitie_mar.x == sarpe[0].x && harta::pozitie_mar.y == sarpe[0].y)
-           return 1;
+        if (h.pozitie_mar == s.getCap()) {
+            generare_mar();
+            return 1;
+        }
         return 0;
     }
 
 public :
     void playGame()
      {
-        while (viu)
+        while (s.isViu())
         {
-            deseneaza_harta(sarpe);
+            h.deseneaza_harta(s.getSarpe(), info);
             get_tasta();
             get_movement_sarpe();
-            corp_sarpe();
-            conditie_sarpe();
-            Sleep(100);
+            s.corp_sarpe();
+            s.conditie_sarpe(info, h);
+            rlutil::msleep(100);
         }
     }
+
 
 };
 
@@ -238,10 +351,10 @@ public :
 
 int main()
 {
-    srand(time(NULL));
+    srand(time(nullptr));
 
     joc play;
     play.playGame();
 
-    system("PAUSE");
+    rlutil::anykey("PAUSE" );
 }
