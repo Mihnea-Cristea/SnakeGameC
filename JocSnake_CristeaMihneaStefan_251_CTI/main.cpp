@@ -182,24 +182,24 @@ public:
         return pctOY;
     }
 
-    void deseneaza_harta(vector<punct> sarpe, info_joc info) const
+    void deseneaza_harta(const vector<punct> &sarpe, info_joc & info) const
     {
         rlutil::cls();
-        for (int row = 0; row < inaltime; row++)
+        for (int row = 0; row < lungime; row++)
         {
-            for (int coloana = 0; coloana < lungime; coloana++)
+            for (int coloana = 0; coloana < inaltime; coloana++)
             {
-                if  ( ( row == 0 || row == inaltime - 1 )
+                if  ( ( row == 0 || row == lungime - 1 )
                             ||
-                    ( coloana == 0 || coloana == lungime - 1 ) ) cout << "*";
-                else if (row == pctOY && coloana == pctOX) cout << "X";
-                else if (row == pozitie_mar.y && coloana == pozitie_mar.x) cout << "O";
+                    ( coloana == 0 || coloana == inaltime - 1 ) ) cout << "*";
+//                else if (row == pctOY && coloana == pctOX) cout << "X";
+                else if (coloana == pozitie_mar.y && row == pozitie_mar.x) cout << "O";
                 else
                 {
                     bool afiseaza_spatiu = true;
-                    for (int corp = 1; corp < info.getScorCurent() + 10 / 10; corp++)
+                    for (int corp = 0; corp < sarpe.size(); corp++)
                     {
-                        if (sarpe[corp].x == coloana && sarpe[corp].y == row)
+                        if (sarpe[corp].y == coloana && sarpe[corp].x == row)
                         {
                             cout << "X";
                             afiseaza_spatiu = false;
@@ -221,32 +221,36 @@ public:
 
 
 
-class sarpe_interactiuni
-{
+class sarpe_interactiuni {
 
 protected:
 
     bool viu = true;   /// viata
-    vector<punct> sarpe {};
+    vector<punct> sarpe{};
 
 
 public:
-    sarpe_interactiuni(harta h);
+    sarpe_interactiuni(harta & h);
 
+    punct &operator[](unsigned int i)
+    {
+        return sarpe[i];
+    }
     const vector<punct> &getSarpe() const;
 
     bool isViu() const;
 
-    const punct &getCap() const;
+//    const punct &getCap() const;
 
     void corp_sarpe()
     {
+
         punct p(sarpe[0]);    /// am un pct initial dupa care adaug pe directia curenta n elemente
-        p.x++;  p.y++;        /// ( sugestiv )
-        sarpe.push_back(p);   /// adaug la p pe directie ( x sau y )
+//        p.x++;  p.y++;
+//        sarpe.push_back(p);   /// adaug la p pe directie ( x sau y )
     }
 
-    void conditie_sarpe(const info_joc& info, harta h)  /// verifica daca sarpele a mancat vreun mar sau a murit lovindu-se in perete sau mancandu se singur && constructor de copiere ( harta h )
+    void conditie_sarpe(const info_joc &info , const harta &h)  /// verifica daca sarpele a mancat vreun mar sau a murit lovindu-se in perete sau mancandu se singur && constructor de copiere ( harta h )
     {
         if ( sarpe[0].x == 0  || sarpe[0].x == h.getLungime() - 1  || sarpe[0].y == 0  ||  sarpe[0].y == h.getInaltime() - 1)  /// sarpe[0].x / .y reprezinta coordonatele capului sarpelui, corect ?
             viu = false;
@@ -260,37 +264,45 @@ public:
         }
     }
     friend class harta;
+
+    void addCoada(const punct &punct);
 };
 
 bool sarpe_interactiuni::isViu() const {
     return viu;
 }
 
-const punct &sarpe_interactiuni::getCap() const {
-    return sarpe[0];
-}
+//const punct &sarpe_interactiuni::getCap() const {
+//    return sarpe[0];
+//}
 
 const vector<punct> &sarpe_interactiuni::getSarpe() const {
     return sarpe;
 }
 
-sarpe_interactiuni::sarpe_interactiuni(harta h) {
+sarpe_interactiuni::sarpe_interactiuni(harta &h) {
     sarpe.emplace_back( h.getLungime() , h.getInaltime() , true );
+}
+
+void sarpe_interactiuni::addCoada(const punct &punct) {
+    sarpe.push_back(punct);
+
 }
 
 class joc
 {
     enum directie { UP, DOWN, LEFT, RIGHT };
-    directie dir = UP;
+    directie dir = LEFT;
     info_joc info {};
     harta h {};
     sarpe_interactiuni s{h};
 
     void get_tasta()
     {
-        if (_kbhit())    /// nu stiu la astea 2 ce as putea sa scriu, in mintea mea e cazul daca se apasa tasta se intra in switch (get_char_apasat), am nevoie de putin ajutor, doar sa mi spui cu ce ar trebui sa inlocuiesc
+
+        if (kbhit())    /// nu stiu la astea 2 ce as putea sa scriu, in mintea mea e cazul daca se apasa tasta se intra in switch (get_char_apasat), am nevoie de putin ajutor, doar sa mi spui cu ce ar trebui sa inlocuiesc
         {
-            switch (_getch())
+            switch (getch())
             {
             case 'a': case 'A': case rlutil::KEY_LEFT:
                 if (dir != RIGHT) dir = LEFT;
@@ -310,10 +322,20 @@ class joc
 
     void get_movement_sarpe()
     {
-        if (dir == LEFT) h.pctOX--;
-        else if (dir == RIGHT) h.pctOX++;
-        else if (dir == UP) h.pctOY--;
-        else if (dir == DOWN) h.pctOY++;
+
+        auto &corp = s.getSarpe();
+        auto cap = corp[0];
+        if (dir == LEFT) cap.y--;
+        else if (dir == RIGHT) cap.y++;
+        else if (dir == UP) cap.x--;
+        else if (dir == DOWN) cap.x++;
+
+        for (auto i = 1u ; i< corp.size() ; ++i)
+        {
+            s[i] = s[i-1];
+        }
+        s[0] = cap ;
+
     }
 
     void generare_mar()  /// generarea marului pt prima data
@@ -323,8 +345,25 @@ class joc
 
     int gasit_mar ()
     {
-        if (h.pozitie_mar == s.getCap()) {
+        auto auc=s[s.getSarpe().size() -1];
+        if (h.pozitie_mar == s[0]) {
             generare_mar();
+            switch (dir)
+            {
+                case UP:
+                    auc.x++;
+                    break;
+                case DOWN:
+                    auc.x--;
+                    break;
+                case LEFT:
+                    auc.y++;
+                    break;
+                case RIGHT:
+                    auc.y--;
+                    break;
+            }
+            s.addCoada(auc);
             return 1;
         }
         return 0;
@@ -336,10 +375,12 @@ public :
         while (s.isViu())
         {
             h.deseneaza_harta(s.getSarpe(), info);
-            get_tasta();
             get_movement_sarpe();
+            get_tasta();
             s.corp_sarpe();
+            gasit_mar();
             s.conditie_sarpe(info, h);
+
             rlutil::msleep(100);
         }
     }
