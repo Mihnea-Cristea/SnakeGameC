@@ -88,19 +88,19 @@ public:
             scor_curent += 10;
             update_PanaLaHiscore();
     }
-    void update_scor_best()
-    {
-
-        if (scor_curent > scor_best) scor_best = scor_curent;
-
-    }
+//    void update_scor_best()
+//    {
+//
+//        if (scor_curent > scor_best) scor_best = scor_curent;
+//
+//    }
 
     void update_PanaLaHiscore()
     {
         for (int i = 1; i <= 3; i++)
         {
             if (scor_curent < scor[i]) PanalaHiscore = scor[i] - scor_curent;
-            else if (scor_curent >= scor[0]) PanalaHiscore = 0;
+            else if (scor_curent >= scor[0]) PanalaHiscore = 0, scor_best=scor_curent,scor[0]=scor_curent;
         }
     }
 
@@ -245,8 +245,7 @@ public:
     void corp_sarpe()
     {
 
-        punct p(sarpe[0]);    /// am un pct initial dupa care adaug pe directia curenta n elemente
-//        p.x++;  p.y++;
+          punct p(sarpe[0]);    /// am un pct initial dupa care adaug pe directia curenta n elemente
 //        sarpe.push_back(p);   /// adaug la p pe directie ( x sau y )
     }
 
@@ -330,7 +329,7 @@ class joc
         else if (dir == UP) cap.x--;
         else if (dir == DOWN) cap.x++;
 
-        for (auto i = 1u ; i< corp.size() ; ++i)
+        for (auto i = corp.size() -1 ; i>= 1u ; --i)
         {
             s[i] = s[i-1];
         }
@@ -348,6 +347,7 @@ class joc
         auto auc=s[s.getSarpe().size() -1];
         if (h.pozitie_mar == s[0]) {
             generare_mar();
+            info.update_scor_curent();
             switch (dir)
             {
                 case UP:
