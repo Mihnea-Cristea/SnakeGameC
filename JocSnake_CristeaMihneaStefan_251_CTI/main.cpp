@@ -14,7 +14,7 @@ struct punct
     punct(int x, int y) : x(x), y(y) {}
     /// sau punct (int a,int b) {x=a;y=b;}
 
-    punct (int lungime, int inaltime, bool )  : x( rand() % (lungime - 4) + 2 ), y ( rand() % (inaltime - 4) + 2 ) {}
+    punct (int lungime, int inaltime, bool )  : x( lungime/2 ), y ( inaltime/2 ) {}
     bool operator==(const punct &rhs) const {
         return x == rhs.x
                     &&
@@ -87,24 +87,20 @@ public:
     {
             scor_curent += 10;
             update_PanaLaHiscore();
+//            update_TabelaDeScor();
     }
-//    void update_scor_best()
-//    {
-//
-//        if (scor_curent > scor_best) scor_best = scor_curent;
-//
-//    }
 
     void update_PanaLaHiscore()
     {
         for (int i = 1; i <= 3; i++)
         {
             if (scor_curent < scor[i]) PanalaHiscore = scor[i] - scor_curent;
-            else if (scor_curent >= scor[0]) PanalaHiscore = 0, scor_best=scor_curent,scor[0]=scor_curent;
+              else if (scor_curent >= scor[0]) PanalaHiscore = 0;
+//            , scor_best=scor_curent,scor[0]=scor_curent;
         }
     }
 
-    void updateTabelaDeScor()
+    void update_TabelaDeScor()
     {
         for (unsigned int tracker = 0; tracker < scor.size(); tracker++)
         {
@@ -138,7 +134,7 @@ class harta
 protected:
 
     int lungime = 30, inaltime = 20;
-    punct pozitie_mar {lungime, inaltime, true};
+    punct pozitie_mar {rand() % (lungime - 4) + 2, rand() % (lungime - 4) + 2, true};
     int pctOX = lungime / 2, pctOY = inaltime / 2;
 public:
     void setPozitieMar(const punct &pozitieMar) {
@@ -192,7 +188,6 @@ public:
                 if  ( ( row == 0 || row == lungime - 1 )
                             ||
                     ( coloana == 0 || coloana == inaltime - 1 ) ) cout << "*";
-//                else if (row == pctOY && coloana == pctOX) cout << "X";
                 else if (coloana == pozitie_mar.y && row == pozitie_mar.x) cout << "O";
                 else
                 {
@@ -225,7 +220,14 @@ class sarpe_interactiuni {
 
 protected:
 
-    bool viu = true;   /// viata
+    bool viu = true;
+public:
+    void setViu(bool viu);
+
+    void setSarpe(const vector<punct> &sarpe);
+
+protected:
+    /// viata
     vector<punct> sarpe{};
 
 
@@ -246,7 +248,6 @@ public:
     {
 
           punct p(sarpe[0]);    /// am un pct initial dupa care adaug pe directia curenta n elemente
-//        sarpe.push_back(p);   /// adaug la p pe directie ( x sau y )
     }
 
     void conditie_sarpe(const info_joc &info , const harta &h)  /// verifica daca sarpele a mancat vreun mar sau a murit lovindu-se in perete sau mancandu se singur && constructor de copiere ( harta h )
@@ -259,6 +260,8 @@ public:
             if (sarpe[i].x == h.getPctOx() && sarpe[i].y == h.getPctOy())
             {
                 viu = false;
+
+
             }
         }
     }
@@ -288,8 +291,21 @@ void sarpe_interactiuni::addCoada(const punct &punct) {
 
 }
 
+void sarpe_interactiuni::setViu(bool viu) {
+    sarpe_interactiuni::viu = viu;
+}
+
+void sarpe_interactiuni::setSarpe(const vector<punct> &sarpe) {
+    sarpe_interactiuni::sarpe = sarpe;
+}
+
 class joc
 {
+private:
+
+    joc() = default;
+    static joc* app;
+    punct p;
     enum directie { UP, DOWN, LEFT, RIGHT };
     directie dir = LEFT;
     info_joc info {};
@@ -339,7 +355,7 @@ class joc
 
     void generare_mar()  /// generarea marului pt prima data
     {
-        h.pozitie_mar= {h.lungime, h.inaltime, true};   ///operator =
+        h.pozitie_mar= {rand() % (h.lungime - 4) + 2, rand() % (h.inaltime - 4) + 2, true};   ///operator =
     }
 
     int gasit_mar ()
@@ -370,6 +386,12 @@ class joc
     }
 
 public :
+    joc(const joc&) = delete;   // e constructor de copiere si nu pot sa apelez in singleton
+    joc& operator=(const joc&) = delete;
+    static joc* get_app() {
+        if (app == nullptr) { app = new joc(); }
+        return app;
+    }
     void playGame()
      {
         while (s.isViu())
@@ -384,18 +406,28 @@ public :
             rlutil::msleep(100);
         }
     }
+    void playAgain()
+    {
+        info.setJocuriJucate(info.getJocuriJucate()+1);
+        info.setScorBest(info.getScorCurent());
+        info.update_TabelaDeScor();
+        info.setScorCurent(0);
+        s.setViu(1);
+        playGame();
+        // ma gandeam sa l apelez pe playAgain in conditie sarpe daca viu = false dar nu mai pot deoarece e de tip singleton acum, need help !!!
 
+    }
 
 };
 
-
+joc* joc::app = nullptr;
 
 int main()
 {
     srand(time(nullptr));
 
-    joc play;
-    play.playGame();
+    joc* play = joc :: get_app();
+    play->playGame();
 
     rlutil::anykey("PAUSE" );
 }
