@@ -392,8 +392,14 @@ public :
         if (app == nullptr) { app = new joc(); }
         return app;
     }
+    void init()
+    {
+        info.setScorCurent(0);
+        s.setViu(1);
+    }
     void playGame()
      {
+        init();
         while (s.isViu())
         {
             h.deseneaza_harta(s.getSarpe(), info);
@@ -406,18 +412,25 @@ public :
             rlutil::msleep(100);
         }
     }
-    void playAgain()
+    void endgame()
     {
         info.setJocuriJucate(info.getJocuriJucate()+1);
         info.setScorBest(info.getScorCurent());
         info.update_TabelaDeScor();
-        info.setScorCurent(0);
-        s.setViu(1);
+
+    }
+    void playAgain()
+    {
+        endgame();
         playGame();
         // ma gandeam sa l apelez pe playAgain in conditie sarpe daca viu = false dar nu mai pot deoarece e de tip singleton acum, need help !!!
 
     }
-
+    bool keepPlaying()
+    {
+        if (kbhit()) return 1;
+        else return 0;
+    }
 };
 
 joc* joc::app = nullptr;
@@ -427,7 +440,9 @@ int main()
     srand(time(nullptr));
 
     joc* play = joc :: get_app();
-    play->playGame();
+    do {
+        play->playGame();
+    }while (play->keepPlaying());
 
     rlutil::anykey("PAUSE" );
 }
