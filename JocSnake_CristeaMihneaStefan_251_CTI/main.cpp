@@ -100,8 +100,8 @@ public:
         for (unsigned int tracker = 0; tracker < scor.size(); tracker++) {
             if (scor_curent > scor[tracker]) {
                 scor.insert(scor.begin() + tracker, scor_curent);
-                scor.erase(scor.begin() + scor.size());
-                return;
+                scor.erase(scor.begin() + scor.size() - 1);
+//                return;
             }
         }
     }
@@ -120,17 +120,20 @@ public:
         if (row == 15) cout << setw(21) << "Cel mai bun scor:" << setw(14) << scor_best;
     }
 };
-
+class mar {
+    punct pozitie_mar{rand() % (lungime - 4) + 2, rand() % (lungime - 4) + 2, true};
+    
+};
 class harta {
     /// sarpe, mar, coordonate de lungime si inaltime
 protected:
 
     int lungime = 30, inaltime = 20;
-    punct pozitie_mar{rand() % (lungime - 4) + 2, rand() % (lungime - 4) + 2, true};
+    mar* m;
     int pctOX = lungime / 2, pctOY = inaltime / 2;
 public:
     void setPozitieMar(const punct &pozitieMar) {
-        pozitie_mar = pozitieMar;
+        m = pozitieMar;
     }
 
     void setLungime(int lungime) {
@@ -151,7 +154,7 @@ public:
 
 public:
     const punct &getPozitieMar() const {
-        return pozitie_mar;
+        return m;
     }
 
     int getLungime() const {
@@ -178,12 +181,20 @@ public:
                     ||
                     (coloana == 0 || coloana == inaltime - 1))
                     cout << "*";
-                else if (coloana == pozitie_mar.y && row == pozitie_mar.x) cout << "O";
+                else if (coloana == m.y && row == m.x)
+                {
+                    rlutil::saveDefaultColor();
+                    rlutil::setColor(rlutil::RED);
+                    cout << "O";
+                }
                 else {
                     bool afiseaza_spatiu = true;
                     for (int corp = 0; corp < sarpe.size(); corp++) {
                         if (sarpe[corp].y == coloana && sarpe[corp].x == row) {
+                            rlutil::saveDefaultColor();
+                            rlutil::setColor(rlutil::YELLOW);
                             cout << "X";
+                            rlutil::resetColor();
                             afiseaza_spatiu = false;
                         }
                     }
@@ -290,14 +301,14 @@ private:
     joc() = default;
 
     static joc *app;
-    punct p;
     enum directie {
         UP, DOWN, LEFT, RIGHT
     };
     directie dir = LEFT;
     info_joc info{};
     harta h{};
-    sarpe_interactiuni s{h};
+    sarpe_interactiuni s_initial{h};
+    sarpe_interactiuni s{s_initial};
 
     void get_tasta() {
 
@@ -347,6 +358,7 @@ private:
     void generare_mar()  /// generarea marului pt prima data
     {
         h.pozitie_mar = {rand() % (h.lungime - 4) + 2, rand() % (h.inaltime - 4) + 2, true};   ///operator =
+        h.m=new mar;
     }
 
     int gasit_mar() {
@@ -385,7 +397,10 @@ public :
 
     void init() {
         info.setScorCurent(0);
+        s=s_initial;
         s.setViu(1);
+
+
     }
 
     void endgame() {
